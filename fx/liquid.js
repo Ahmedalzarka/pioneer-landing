@@ -10,8 +10,8 @@
   if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   if (!window.matchMedia || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
 
-  var DROPS = 7;          // droplets in the trail
-  var SIZE = 170;         // diameter of the lead droplet, px
+  var DROPS = 4;          // droplets in the trail
+  var SIZE = 150;         // diameter of the lead droplet, px
   var SCALE = 26;         // distortion strength
   var FILTER = 'url(#pp-liquid)';
   var canWarp = CSS.supports('backdrop-filter', FILTER) || CSS.supports('-webkit-backdrop-filter', FILTER);
@@ -27,7 +27,6 @@
     '<feDisplacementMap in="SourceGraphic" in2="n" scale="' + SCALE + '" xChannelSelector="R" yChannelSelector="G"/>' +
     '</filter>';
   document.body.appendChild(svg);
-  var noise = svg.querySelector('#pp-liquid-noise');
 
   var style = document.createElement('style');
   style.textContent =
@@ -45,26 +44,27 @@
     var el = document.createElement('div');
     el.className = 'pp-drop';
     el.setAttribute('aria-hidden', 'true');
-    var size = Math.round(SIZE * (1 - i * 0.09));
+    var size = Math.round(SIZE * (1 - i * 0.14));
     el.style.width = el.style.height = size + 'px';
     document.body.appendChild(el);
     drops.push({ el: el, x: -999, y: -999, size: size });
   }
 
-  var mx = -999, my = -999, energy = 0, running = false, t = 0;
+  var mx = -999, my = -999, energy = 0, running = false, onControl = false;
+  var CONTROLS = 'a, button, .btn, .tgl, .email-btn, .hdr, .mbar, input, select, textarea';
 
   window.addEventListener('pointermove', function (e) {
     if (e.pointerType !== 'mouse') return;
+    onControl = !!(e.target && e.target.closest && e.target.closest(CONTROLS));
     var dx = e.clientX - mx, dy = e.clientY - my;
     if (mx < -900) drops.forEach(function (d) { d.x = e.clientX; d.y = e.clientY; });
-    else energy = Math.min(1, energy + Math.hypot(dx, dy) / 140);
+    else if (!onControl) energy = Math.min(1, energy + Math.hypot(dx, dy) / 140);
     mx = e.clientX; my = e.clientY;
     if (!running) { running = true; requestAnimationFrame(tick); }
   }, { passive: true });
   document.addEventListener('pointerleave', function () { energy = 0; });
 
   function tick() {
-    t += 1 / 60;
     // Each droplet chases the one ahead of it, the lead chases the cursor: a fluid trail.
     var tx = mx, ty = my;
     for (var i = 0; i < drops.length; i++) {
@@ -76,9 +76,7 @@
       d.el.style.transform = 'translate3d(' + (d.x - d.size / 2) + 'px,' + (d.y - d.size / 2) + 'px,0)';
       tx = d.x; ty = d.y;
     }
-    // Let the "water" keep moving a little.
-    if (canWarp) noise.setAttribute('baseFrequency', (0.011 + Math.sin(t * 1.3) * 0.0015).toFixed(4) + ' ' + (0.016 + Math.cos(t) * 0.0015).toFixed(4));
-    energy *= 0.95;
+    energy *= onControl ? 0.7 : 0.95;
     if (energy > 0.01) requestAnimationFrame(tick);
     else { running = false; drops.forEach(function (d) { d.el.style.opacity = '0'; }); }
   }
