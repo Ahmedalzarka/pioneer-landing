@@ -34,7 +34,10 @@
     '.pp-drop{position:fixed;left:0;top:0;border-radius:50%;pointer-events:none;z-index:90;opacity:0;will-change:transform,opacity;' +
     (canWarp ? '-webkit-backdrop-filter:' + FILTER + ';backdrop-filter:' + FILTER + ';'
              : '-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);') +
-    '-webkit-mask-image:radial-gradient(circle closest-side,#000 45%,transparent 100%);mask-image:radial-gradient(circle closest-side,#000 45%,transparent 100%)}';
+    '-webkit-mask-image:radial-gradient(circle closest-side,#000 45%,transparent 100%);mask-image:radial-gradient(circle closest-side,#000 45%,transparent 100%)}' +
+    // Buttons and the header bar sit above the droplets, so they are never warped.
+    '.pp .btn,.pp .tgl,.pp .email-btn,.pp button{position:relative;z-index:91}' +
+    '.pp .hdr{z-index:95}';
   document.head.appendChild(style);
 
   var drops = [];
