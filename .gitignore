@@ -1,0 +1,14 @@
+# macOS
+.DS_Store
+
+# Local tooling (preview server, design-tool state)
+.claude/
+.impeccable/
+
+# Effect demo pages; copies of the site that would count as duplicate content
+fx-*.html
+fx/fx-base.js
+fx/particles.js
+fx/smoke.js
+fx/pixels.js
+fx/blur.js
